@@ -16,7 +16,7 @@ export class User {
   @Prop({ required: true })
   fullName: string;
 
-  @Prop({ required: true, enum: ["customer", "admin"], default: "customer" })
+  @Prop({ required: true, enum: ['customer', 'admin'], default: 'customer' })
   role: string;
 
   @Prop({ default: null })
@@ -46,11 +46,12 @@ export class User {
 
   @Prop({ default: true })
   isActive: boolean;
-
 }
 
 // Schema
 export const userSchema = SchemaFactory.createForClass(User);
+userSchema.index({ email: 1 });
+userSchema.index({ phone: 1 });
 
 // Create geospatial index for location-based queries
 userSchema.index({ 'location.coordinates': '2dsphere' });
