@@ -1,56 +1,55 @@
 import { Injectable } from '@nestjs/common';
 import { BaseRepository } from './base.repository';
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserType } from '../Model/users/user.model';
 import { Model, ProjectionType, Types, UpdateQuery } from 'mongoose';
-import { UserModel } from './../Model/users/user.model';
+import { Technical,  TechnicalType } from '../Model/users/technical.model';
 
 type Filter<T> = Parameters<Model<T>['find']>[0];
 type UpdateManyFilter<T> = Parameters<Model<T>['updateMany']>[0];
 
 @Injectable()
-export class TechnicalRepository extends BaseRepository<UserType>{
+export class TechnicalRepository extends BaseRepository<TechnicalType>{
     constructor(
-        @InjectModel(User.name) private readonly UserModel: Model<UserType>,
+        @InjectModel(Technical.name) private readonly technicalModel: Model<TechnicalType>,
     ) {
-        super(UserModel);
+        super(technicalModel);
     }   
 
     //Find methods
 
     async findOneDocument(
-        filters: Filter<UserType>,project?: ProjectionType<UserType>
-    ): Promise<UserType | null> {
-        return await this.UserModel.findOne(filters,project);
+        filters: Filter<TechnicalType>,project?: ProjectionType<TechnicalType>
+    ): Promise<TechnicalType | null> {
+        return await this.technicalModel.findOne(filters,project);
     }
 
     async findTechnicalById(
-        id: Types.ObjectId, project?: ProjectionType<UserType>
-    ): Promise<UserType | null> {
-        return await this.UserModel.findById(id, project);
+        id: Types.ObjectId, project?: ProjectionType<TechnicalType>
+    ): Promise<TechnicalType | null> {
+        return await this.technicalModel.findById(id, project);
     }
 
     async findTechnicalByEmail(
-        email: string, project?: ProjectionType<UserType>
-    ): Promise<UserType | null> {
-        return await this.UserModel.findOne({ email }, project);
+        email: string, project?: ProjectionType<TechnicalType>
+    ): Promise<TechnicalType | null> {
+        return await this.technicalModel.findOne({ email }, project);
     }
 
     async findTechnicalByPhone(
-        phone: string , project?: ProjectionType<UserType>
-    ): Promise<UserType | null>{
-        return await this.UserModel.findOne({phone},project)
+        phone: string , project?: ProjectionType<TechnicalType>
+    ): Promise<TechnicalType | null>{
+        return await this.technicalModel.findOne({phone},project)
     }
 
     async findActiveTechnicals(
-        filters: Filter<UserType>, project?: ProjectionType<UserType>
-    ): Promise<UserType[]>{
-        return await this.UserModel.find({...filters,isActive:true},project)
+        filters: Filter<TechnicalType>, project?: ProjectionType<TechnicalType>
+    ): Promise<TechnicalType[]>{
+        return await this.technicalModel.find({...filters,isActive:true},project)
     }
 
     async findTechnicalsNearLocation(
-        longitude: number, latitude: number , maxDistanceInMeters: number, filters?: Filter<UserType>
-    ): Promise<UserType[]>{
+        longitude: number, latitude: number , maxDistanceInMeters: number, filters?: Filter<TechnicalType>
+    ): Promise<TechnicalType[]>{
         const locationFilter = {
             location: {
                 $nearSphere: {
@@ -62,7 +61,7 @@ export class TechnicalRepository extends BaseRepository<UserType>{
                 }
             }
         };
-        return await this.UserModel.find({...locationFilter,...filters});
+        return await this.technicalModel.find({...locationFilter,...filters});
     }
 
     // Check Methods
@@ -71,7 +70,7 @@ export class TechnicalRepository extends BaseRepository<UserType>{
         email: string,
         phone: string
     ): Promise<boolean>{
-        const technical = await this.UserModel.exists({
+        const technical = await this.technicalModel.exists({
             $or: [{ email }, { phone }],
         })
         return !!technical;
@@ -81,31 +80,30 @@ export class TechnicalRepository extends BaseRepository<UserType>{
     // Update methods
 
     async updateProfile(
-        id: Types.ObjectId, updateData: Partial<UserType>
-    ): Promise<UserType | null>{
-        return await this.UserModel.findByIdAndUpdate(id, updateData , {new : true});
-    }
+        id: Types.ObjectId, updateData: Partial<TechnicalType>
+    ): Promise<void> {
+    await this.technicalModel.findByIdAndUpdate(id, updateData);
+  }
 
     async updateManyTechnicals(
-        filters: UpdateManyFilter<UserType>, updateQuery: UpdateQuery<UserType>
-    ): Promise<number>{
-        const result = await this.UserModel.updateMany(filters, updateQuery);
-        return result.modifiedCount;
+        filters: UpdateManyFilter<TechnicalType>, updateQuery: UpdateQuery<TechnicalType>
+    ): Promise<void>{
+        await this.technicalModel.updateMany(filters, updateQuery);
     }
 
     async updateTechnicalStatus(
         id: Types.ObjectId, isActive: boolean
-    ): Promise<UserType | null>{
-        return await this.UserModel.findByIdAndUpdate(id, {isActive}, {new : true});
+    ): Promise<void>{
+        await this.technicalModel.findByIdAndUpdate(id, {isActive}, {new : true});
     }
 
     async updateTechnicalLocation(
         id: Types.ObjectId, longitude: number, latitude: number
-    ): Promise<UserType | null>{
+    ): Promise<void>{
         const location = {
             type: "Point",
             coordinates: [longitude, latitude]
         };
-        return await this.UserModel.findByIdAndUpdate(id, {location}, {new : true});
+        await this.technicalModel.findByIdAndUpdate(id, {location}, {new : true});
     }   
 }
